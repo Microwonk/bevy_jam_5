@@ -28,6 +28,7 @@ impl<T: Spawn> Widgets for T {
                     align_items: AlignItems::Center,
                     ..default()
                 },
+                border_radius: BorderRadius::all(Val::Px(10.)),
                 background_color: BackgroundColor(NODE_BACKGROUND),
                 ..default()
             },
@@ -64,6 +65,7 @@ impl<T: Spawn> Widgets for T {
                     align_items: AlignItems::Center,
                     ..default()
                 },
+                border_radius: BorderRadius::all(Val::Px(15.)),
                 background_color: BackgroundColor(NODE_BACKGROUND),
                 ..default()
             },

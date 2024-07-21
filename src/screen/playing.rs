@@ -19,7 +19,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn enter_playing(mut commands: Commands) {
-    commands.trigger(SpawnLevel);
+    commands.trigger(SpawnLevel::First);
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Gameplay));
 }
 

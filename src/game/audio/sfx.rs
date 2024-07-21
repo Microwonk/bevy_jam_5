@@ -29,6 +29,8 @@ fn play_sfx(
 #[derive(Event)]
 pub enum PlaySfx {
     Key(SfxKey),
+    // TODO
+    #[allow(dead_code)]
     RandomStep,
 }
 
