@@ -1,4 +1,7 @@
-use crate::screen::Screen;
+use crate::{
+    game::spawn::player::{Player, PlayerBundle},
+    screen::Screen,
+};
 
 use super::components::*;
 use bevy::prelude::*;
@@ -45,7 +48,6 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Playing)),
     )
     .register_ldtk_int_cell::<WallBundle>(1)
-    .register_ldtk_int_cell::<LadderBundle>(2)
     .register_ldtk_int_cell::<WallBundle>(3)
     .register_ldtk_entity::<PlayerBundle>("Player");
 }

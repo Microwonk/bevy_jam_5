@@ -3,13 +3,13 @@ use bevy_ecs_ldtk::prelude::*;
 
 use bevy_rapier2d::prelude::*;
 
-use crate::game::movement::MovementController;
-
 #[derive(Clone, Default, Bundle, LdtkIntCell)]
 pub struct ColliderBundle {
     pub collider: Collider,
     pub rigid_body: RigidBody,
     pub velocity: Velocity,
+    pub restitution: Restitution,
+    pub damping: Damping,
     pub rotation_constraints: LockedAxes,
     pub gravity_scale: GravityScale,
     pub friction: Friction,
@@ -28,10 +28,18 @@ impl From<&EntityInstance> for ColliderBundle {
     fn from(entity_instance: &EntityInstance) -> ColliderBundle {
         match entity_instance.identifier.as_ref() {
             "Player" => ColliderBundle {
-                collider: Collider::ball(16.), // half of the pixel (32x32 is the ball sprite)
+                collider: Collider::ball(24.), // half of the pixel (32x32 is the ball sprite)
                 rigid_body: RigidBody::Dynamic,
                 friction: Friction::default(),
-                ..Default::default()
+                restitution: Restitution {
+                    coefficient: 0.7,
+                    combine_rule: CoefficientCombineRule::Multiply,
+                },
+                damping: Damping {
+                    linear_damping: 1.5,
+                    angular_damping: 1.0,
+                },
+                ..default()
             },
             // Handle other entities from LDtk
             _ => ColliderBundle::default(),
@@ -72,28 +80,28 @@ impl From<&EntityInstance> for Items {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
-pub struct Player;
-
-#[derive(Clone, Default, Bundle, LdtkEntity)]
-pub struct PlayerBundle {
-    #[sprite_bundle("images/ball.png")]
-    pub sprite_bundle: SpriteBundle,
-    #[from_entity_instance]
-    pub collider_bundle: ColliderBundle,
-    pub player: Player,
-    pub movement_controller: MovementController,
-    #[worldly]
-    pub worldly: Worldly,
-
-    // Build Items Component manually by using `impl From<&EntityInstance>`
-    #[from_entity_instance]
-    items: Items,
-
-    // The whole EntityInstance can be stored directly as an EntityInstance component
-    #[from_entity_instance]
-    entity_instance: EntityInstance,
-}
+// impl LdtkEntity for PlayerBundle {
+//     fn bundle_entity(
+//         entity_instance: &EntityInstance,
+//         _: &LayerInstance,
+//         _: Option<&Handle<Image>>,
+//         _: Option<&TilesetDefinition>,
+//         asset_server: &AssetServer,
+//         _: &mut Assets<TextureAtlasLayout>,
+//     ) -> Self {
+//         Self {
+//             worldly: bevy_ecs_ldtk::prelude::Worldly::from_entity_info(entity_instance),
+//             hamster: AsepriteAnimationBundleWrapper::from_identifier(
+//                 entity_instance.identifier.as_ref(),
+//                 asset_server,
+//             ),
+//             items: Items::from(entity_instance),
+//             collider_bundle: ColliderBundle::from(entity_instance),
+//             entity_instance: entity_instance.clone(),
+//             ..default()
+//         }
+//     }
+// }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
 pub struct Wall;
@@ -101,14 +109,4 @@ pub struct Wall;
 #[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
 pub struct WallBundle {
     wall: Wall,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
-pub struct Climbable;
-
-#[derive(Clone, Default, Bundle, LdtkIntCell)]
-pub struct LadderBundle {
-    #[from_int_grid_cell]
-    pub sensor_bundle: SensorBundle,
-    pub climbable: Climbable,
 }
