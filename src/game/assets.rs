@@ -1,12 +1,13 @@
-use bevy::{
-    prelude::*,
-    render::texture::{ImageLoaderSettings, ImageSampler},
-    utils::HashMap,
-};
+use bevy::{prelude::*, utils::HashMap};
+use bevy_aseprite_ultra::{prelude::Aseprite, BevySprityPlugin};
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(BevySprityPlugin);
     app.register_type::<HandleMap<ImageKey>>();
     app.init_resource::<HandleMap<ImageKey>>();
+
+    app.register_type::<HandleMap<AsepriteKey>>();
+    app.init_resource::<HandleMap<AsepriteKey>>();
 
     app.register_type::<HandleMap<SfxKey>>();
     app.init_resource::<HandleMap<SfxKey>>();
@@ -15,91 +16,80 @@ pub(super) fn plugin(app: &mut App) {
     app.init_resource::<HandleMap<SoundtrackKey>>();
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
-pub enum ImageKey {
-    Ducky,
+#[macro_export]
+macro_rules! asset_enum {
+    (
+        $(#[$outer:meta])*
+        $vis:vis enum $name:ident {
+            $($variant:ident => $file_name:expr),* $(,)?
+        }
+        asset_type: $asset_type:ty,
+    ) => {
+        $(#[$outer])*
+        $vis enum $name {
+            $($variant),*
+        }
+
+        impl AssetKey for $name {
+            type Asset = $asset_type;
+        }
+
+        impl FromWorld for HandleMap<$name> {
+            fn from_world(world: &mut World) -> Self {
+                let asset_server = world.resource::<AssetServer>();
+                [
+                    $(
+                        (
+                            $name::$variant,
+                            asset_server.load($file_name),
+                        )
+                    ),*
+                ].into()
+            }
+        }
+    };
 }
 
-impl AssetKey for ImageKey {
-    type Asset = Image;
-}
-
-impl FromWorld for HandleMap<ImageKey> {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        [(
-            ImageKey::Ducky,
-            asset_server.load_with_settings(
-                "images/ducky.png",
-                |settings: &mut ImageLoaderSettings| {
-                    settings.sampler = ImageSampler::nearest();
-                },
-            ),
-        )]
-        .into()
+asset_enum! {
+    #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
+    pub enum AsepriteKey {
+        Bluberry => "aseprite/bluberry.aseprite",
+        Hampter => "aseprite/hampter.aseprite",
+        HamsterAnimation => "aseprite/hamster_animation.aseprite",
     }
+    asset_type: Aseprite,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
-pub enum SfxKey {
-    ButtonHover,
-    ButtonPress,
-    Step1,
-    Step2,
-    Step3,
-    Step4,
-}
-
-impl AssetKey for SfxKey {
-    type Asset = AudioSource;
-}
-
-impl FromWorld for HandleMap<SfxKey> {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        [
-            (
-                SfxKey::ButtonHover,
-                asset_server.load("audio/sfx/button_hover.ogg"),
-            ),
-            (
-                SfxKey::ButtonPress,
-                asset_server.load("audio/sfx/button_press.ogg"),
-            ),
-            (SfxKey::Step1, asset_server.load("audio/sfx/step1.ogg")),
-            (SfxKey::Step2, asset_server.load("audio/sfx/step2.ogg")),
-            (SfxKey::Step3, asset_server.load("audio/sfx/step3.ogg")),
-            (SfxKey::Step4, asset_server.load("audio/sfx/step4.ogg")),
-        ]
-        .into()
+asset_enum! {
+    #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
+    pub enum ImageKey {
+        Hampter => "images/hampter.png",
+        NotCollectedHampter => "images/not_collected_hampter.png",
+        Hamsterwheel => "images/hamsterwheel.png",
     }
+    asset_type: Image,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
-pub enum SoundtrackKey {
-    Credits,
-    Gameplay,
-}
-
-impl AssetKey for SoundtrackKey {
-    type Asset = AudioSource;
-}
-
-impl FromWorld for HandleMap<SoundtrackKey> {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.resource::<AssetServer>();
-        [
-            (
-                SoundtrackKey::Credits,
-                asset_server.load("audio/soundtracks/Monkeys Spinning Monkeys.ogg"),
-            ),
-            (
-                SoundtrackKey::Gameplay,
-                asset_server.load("audio/soundtracks/Fluffing A Duck.ogg"),
-            ),
-        ]
-        .into()
+asset_enum! {
+    #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
+    pub enum SfxKey {
+        ButtonHover => "audio/sfx/button_hover.ogg",
+        ButtonPress => "audio/sfx/button_press.ogg",
+        Step1 => "audio/sfx/step1.ogg",
+        Step2 => "audio/sfx/step2.ogg",
+        Step3 => "audio/sfx/step3.ogg",
+        Step4 => "audio/sfx/step4.ogg",
     }
+    asset_type: AudioSource,
+}
+
+asset_enum! {
+    #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
+    pub enum SoundtrackKey {
+        Credits => "audio/soundtracks/monkeys_spinning_monkeys.ogg",
+        Gameplay => "audio/soundtracks/fluffing_a_duck.ogg",
+    }
+    asset_type: AudioSource,
 }
 
 pub trait AssetKey: Sized {

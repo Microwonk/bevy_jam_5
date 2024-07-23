@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::game::assets::{HandleMap, ImageKey};
 use crate::screen::Screen;
 use crate::ui::prelude::*;
 
@@ -18,7 +19,11 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Component, Default, PartialEq, PartialOrd, Ord, Eq)]
 struct HampterIconMarker(pub u8);
 
-fn enter_level(mut commands: Commands, server: Res<AssetServer>, current_level: Res<CurrentLevel>) {
+fn enter_level(
+    mut commands: Commands,
+    handles: Res<HandleMap<ImageKey>>,
+    current_level: Res<CurrentLevel>,
+) {
     commands
         .spawn(NodeBundle {
             background_color: BackgroundColor(Color::srgba(0., 0., 0., 0.5)),
@@ -39,7 +44,7 @@ fn enter_level(mut commands: Commands, server: Res<AssetServer>, current_level: 
                 if matches!(item, ItemType::Hampter) {
                     for i in 0..count {
                         child
-                            .icon(&server, "images/not-collected-hampter.png")
+                            .icon(handles[&ImageKey::NotCollectedHampter].clone_weak())
                             .insert(HampterIconMarker(i));
                     }
                 }
@@ -50,7 +55,7 @@ fn enter_level(mut commands: Commands, server: Res<AssetServer>, current_level: 
 fn update_hampter_ui(
     mut commands: Commands,
     icons: Query<(Entity, &HampterIconMarker)>,
-    server: Res<AssetServer>,
+    handles: Res<HandleMap<ImageKey>>,
     items: Query<&Items>,
 ) {
     for item in items.iter() {
@@ -64,7 +69,7 @@ fn update_hampter_ui(
                 break;
             }
             commands.entity(e).remove::<UiImage>().insert(UiImage {
-                texture: server.load("images/hampter.png"),
+                texture: handles[&ImageKey::Hampter].clone_weak(),
                 ..default()
             });
             // *handle = server.load("images/hampter.aseprite");

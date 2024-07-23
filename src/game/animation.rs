@@ -21,26 +21,16 @@ impl AsepriteAnimationBundleWrapper {
     }
 }
 
+// TODO maybe just use pngs.
 impl AsepriteAnimationBundleWrapper {
     pub fn from_identifier(value: &str, server: &AssetServer) -> Self {
         match ItemType::from_str(value) {
             Ok(ItemType::Hampter) => {
-                AsepriteAnimationBundleWrapper::item("images/hampter.aseprite", server)
+                AsepriteAnimationBundleWrapper::item("aseprite/hampter.aseprite", server)
             }
             Ok(ItemType::Bluberry) => {
-                AsepriteAnimationBundleWrapper::item("images/bluberry.aseprite", server)
+                AsepriteAnimationBundleWrapper::item("aseprite/bluberry.aseprite", server)
             }
-            Err(_) => match value {
-                "Player" => AsepriteAnimationBundleWrapper {
-                    bundle: AsepriteAnimationBundle {
-                        aseprite: server.load("images/hamster-animation.aseprite"),
-                        transform: Transform::from_xyz(0., -10., -1.),
-                        ..default()
-                    },
-                },
-                _ => todo!(),
-            },
-            // TODO
             _ => todo!(),
         }
     }

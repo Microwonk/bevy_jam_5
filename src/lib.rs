@@ -33,6 +33,7 @@ impl Plugin for AppPlugin {
                     meta_check: AssetMetaCheck::Never,
                     ..default()
                 })
+                .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Window {
                         title: "Hamster Cycle Zero".to_string(),

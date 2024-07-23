@@ -1,30 +1,36 @@
 use bevy::prelude::*;
-use bevy_aseprite_ultra::BevySprityPlugin;
+use bevy_aseprite_ultra::prelude::AsepriteAnimationBundle;
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, Worldly};
 
-use crate::game::{animation::AsepriteAnimationBundleWrapper, movement::MovementController};
+use crate::game::{
+    animation::AsepriteAnimationBundleWrapper,
+    assets::{AsepriteKey, HandleMap},
+    movement::MovementController,
+};
 
 use super::level::{components::ColliderBundle, items::Items};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(BevySprityPlugin)
-        .add_systems(Update, (on_player_bundle_added, update_hamster_orientation));
+    app.add_systems(Update, (on_player_bundle_added, update_hamster_orientation));
 }
 
 #[derive(Component)]
 pub struct Hamster;
 
 fn on_player_bundle_added(
-    server: Res<AssetServer>,
+    handles: Res<HandleMap<AsepriteKey>>,
     mut commands: Commands,
     player: Query<Entity, Added<Player>>,
 ) {
     for p in player.iter() {
         commands.entity(p).with_children(|child| {
             child
-                .spawn(AsepriteAnimationBundleWrapper::from_identifier(
-                    "Player", &server,
-                ))
+                .spawn(AsepriteAnimationBundleWrapper {
+                    bundle: AsepriteAnimationBundle {
+                        aseprite: handles[&AsepriteKey::HamsterAnimation].clone_weak(),
+                        ..default()
+                    },
+                })
                 .insert(Hamster);
         });
     }

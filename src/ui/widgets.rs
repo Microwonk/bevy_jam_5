@@ -16,7 +16,7 @@ pub trait Widgets {
     /// Spawn a simple text label.
     fn label(&mut self, text: impl Into<String>) -> EntityCommands;
 
-    fn icon(&mut self, server: &AssetServer, icon_path: &'static str) -> EntityCommands;
+    fn icon(&mut self, texture: Handle<Image>) -> EntityCommands;
 }
 
 impl<T: Spawn> Widgets for T {
@@ -118,12 +118,12 @@ impl<T: Spawn> Widgets for T {
         entity
     }
 
-    fn icon(&mut self, server: &AssetServer, icon_path: &'static str) -> EntityCommands {
+    fn icon(&mut self, texture: Handle<Image>) -> EntityCommands {
         let entity = self.spawn((
             Name::new("Icon"),
             ImageBundle {
                 image: UiImage {
-                    texture: server.load(icon_path),
+                    texture,
                     ..default()
                 },
                 ..default()
