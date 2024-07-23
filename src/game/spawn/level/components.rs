@@ -47,61 +47,22 @@ impl From<&EntityInstance> for ColliderBundle {
     }
 }
 
-impl From<IntGridCell> for SensorBundle {
-    fn from(int_grid_cell: IntGridCell) -> SensorBundle {
+impl From<&EntityInstance> for SensorBundle {
+    fn from(entity_instance: &EntityInstance) -> SensorBundle {
         let rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
-        // ladder
-        if int_grid_cell.value == 2 {
-            SensorBundle {
+        match entity_instance.identifier.as_ref() {
+            "Hampter" | "Bluberry" => SensorBundle {
                 collider: Collider::cuboid(8., 8.),
                 sensor: Sensor,
                 rotation_constraints,
                 active_events: ActiveEvents::COLLISION_EVENTS,
-            }
-        } else {
-            SensorBundle::default()
+            },
+            // TODO
+            _ => todo!(),
         }
     }
 }
-
-#[derive(Clone, Component, Debug, Eq, Default, PartialEq)]
-pub struct Items(Vec<String>);
-
-impl From<&EntityInstance> for Items {
-    fn from(entity_instance: &EntityInstance) -> Self {
-        Items(
-            entity_instance
-                .iter_enums_field("items")
-                .expect("items field should be correctly typed")
-                .cloned()
-                .collect(),
-        )
-    }
-}
-
-// impl LdtkEntity for PlayerBundle {
-//     fn bundle_entity(
-//         entity_instance: &EntityInstance,
-//         _: &LayerInstance,
-//         _: Option<&Handle<Image>>,
-//         _: Option<&TilesetDefinition>,
-//         asset_server: &AssetServer,
-//         _: &mut Assets<TextureAtlasLayout>,
-//     ) -> Self {
-//         Self {
-//             worldly: bevy_ecs_ldtk::prelude::Worldly::from_entity_info(entity_instance),
-//             hamster: AsepriteAnimationBundleWrapper::from_identifier(
-//                 entity_instance.identifier.as_ref(),
-//                 asset_server,
-//             ),
-//             items: Items::from(entity_instance),
-//             collider_bundle: ColliderBundle::from(entity_instance),
-//             entity_instance: entity_instance.clone(),
-//             ..default()
-//         }
-//     }
-// }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
 pub struct Wall;

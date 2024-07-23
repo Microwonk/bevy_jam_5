@@ -3,7 +3,10 @@ use crate::{
     screen::Screen,
 };
 
-use super::components::*;
+use super::{
+    components::*,
+    items::{BluberryBundle, HampterBundle, ItemType},
+};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
@@ -49,7 +52,9 @@ pub(super) fn plugin(app: &mut App) {
     )
     .register_ldtk_int_cell::<WallBundle>(1)
     .register_ldtk_int_cell::<WallBundle>(3)
-    .register_ldtk_entity::<PlayerBundle>("Player");
+    .register_ldtk_entity::<PlayerBundle>("Player")
+    .register_ldtk_entity::<HampterBundle>(ItemType::Hampter.to_str())
+    .register_ldtk_entity::<BluberryBundle>(ItemType::Bluberry.to_str());
 }
 
 /// Spawns heron collisions for the walls of a level

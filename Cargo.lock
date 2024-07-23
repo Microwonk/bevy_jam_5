@@ -2429,6 +2429,7 @@ dependencies = [
  "bevy_ecs_ldtk",
  "bevy_rapier2d",
  "log",
+ "paste",
  "rand",
 ]
 

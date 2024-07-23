@@ -6,7 +6,7 @@
 // TODO use a kinematic velocity based character maybe
 
 use bevy::prelude::*;
-use bevy_rapier2d::{dynamics::Velocity, parry::query::contact, plugin::RapierContext};
+use bevy_rapier2d::{dynamics::Velocity, plugin::RapierContext};
 
 use crate::{screen::Screen, AppSet};
 

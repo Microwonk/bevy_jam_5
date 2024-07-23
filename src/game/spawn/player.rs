@@ -4,7 +4,7 @@ use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, Worldly};
 
 use crate::game::{animation::AsepriteAnimationBundleWrapper, movement::MovementController};
 
-use super::level::components::{ColliderBundle, Items};
+use super::level::{components::ColliderBundle, items::Items};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(BevySprityPlugin)
