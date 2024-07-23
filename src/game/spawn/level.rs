@@ -9,6 +9,7 @@ use items::ItemType;
 
 use crate::screen::Screen;
 
+#[allow(dead_code)]
 #[derive(SubStates, Debug, Hash, Eq, PartialEq, Clone, Default)]
 #[source(Screen = Screen::Playing)]
 pub enum LevelState {
@@ -33,7 +34,7 @@ pub struct CurrentLevel(pub SpawnLevel);
 impl CurrentLevel {
     pub fn items(&self) -> HashMap<ItemType, u8> {
         match self.0 {
-            SpawnLevel::First => [(ItemType::Hampter, 10), (ItemType::Bluberry, 8)]
+            SpawnLevel::First => [(ItemType::Hampter, 15), (ItemType::Bluberry, 8)]
                 .iter()
                 .cloned()
                 .collect(),

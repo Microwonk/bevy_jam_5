@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::{Aseprite, AsepriteAnimationUiBundle};
 
 use crate::screen::Screen;
 use crate::ui::prelude::*;
