@@ -41,6 +41,36 @@ pub struct MovementController {
     pub colliding: bool,
 }
 
+#[derive(Component, Reflect, Clone)]
+#[reflect(Component)]
+pub struct MovementConfig {
+    pub movement_speed: f32,
+    pub jump_impulse: f32,
+    pub maximum_vel: f32,
+}
+
+pub const DEFAULT_MOVEMENT_SPEED: f32 = 10.;
+pub const DEFAULT_JUMP_IMPULSE: f32 = 200.;
+pub const DEFAULT_MAX_VEL: f32 = 300.;
+
+impl Default for MovementConfig {
+    fn default() -> Self {
+        Self {
+            movement_speed: DEFAULT_MOVEMENT_SPEED,
+            jump_impulse: DEFAULT_JUMP_IMPULSE,
+            maximum_vel: DEFAULT_MAX_VEL,
+        }
+    }
+}
+
+// impl MovementConfig {
+//     pub fn reset(&mut self) {
+//         self.movement_speed = DEFAULT_MOVEMENT_SPEED;
+//         self.jump_impulse = DEFAULT_JUMP_IMPULSE;
+//         self.maximum_vel = DEFAULT_MAX_VEL;
+//     }
+// }
+
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut MovementController>,
@@ -70,60 +100,42 @@ fn record_movement_controller(
     }
 }
 
-fn apply_movement(mut movement_query: Query<(&MovementController, &mut Velocity), With<Player>>) {
-    for (controller, mut vel) in &mut movement_query {
-        // TODO: control speed differently
+fn apply_movement(
+    mut movement_query: Query<(&MovementController, &MovementConfig, &mut Velocity), With<Player>>,
+) {
+    for (controller, config, mut vel) in &mut movement_query {
         // rolling movement
-        vel.linvel.x += 10. * controller.movement.x;
+        vel.linvel.x += config.movement_speed * controller.movement.x;
         // jump movement
-        vel.linvel += controller.jump * 300.;
+        vel.linvel += config.jump_impulse * controller.jump;
         // maximum velocity calculation
-        let max_vel = Vec2::splat(300.);
-        vel.linvel = vel.linvel.min(max_vel);
+        vel.linvel = vel.linvel.min(Vec2::splat(config.maximum_vel));
     }
 }
 
 fn update_collisions(
     rapier_context: Res<RapierContext>,
-    mut player: Query<(Entity, &mut MovementController), With<Player>>,
+    mut player: Query<(Entity, &mut MovementController, &Transform), With<Player>>,
     mut player_contact: ResMut<PlayerContact>,
-    mut correction: Local<Option<f32>>,
 ) {
-    for (e, mut m) in player.iter_mut() {
+    for (e, mut m, t) in player.iter_mut() {
         // all collected normals of the player entity
         let mut all_normals: Vec<Vec2> = vec![];
         for contact_pair in rapier_context.contact_pairs_with(e) {
-            let mut normals: Vec<Vec2> = contact_pair
-                .manifolds()
-                .map(|manifold| {
-                    if let Some(c) = *correction {
-                        manifold.normal() * c
-                    } else {
-                        // FIXME my god
-                        // very hacksawy
-                        // basically detecting if the first time touching the ground (as every level starts with the player touching the ground)
-                        // results in the expecting y component  of the vector (pointing up), and if it does not, it compensates by negating the vector
-                        // please don't tell anyone
-                        if manifold.normal().y > 0. {
-                            *correction = Some(-1.);
-                        } else {
-                            *correction = Some(1.);
-                        }
-                        if let Some(c) = *correction {
-                            manifold.normal() * c
-                        } else {
-                            manifold.normal()
-                        }
-                    }
-                })
-                .collect();
-
-            all_normals.append(&mut normals);
+            contact_pair.manifolds().for_each(|manifold| {
+                for solver_contact in &manifold.raw.data.solver_contacts {
+                    all_normals.push(
+                        Vec2::new(solver_contact.point.x, solver_contact.point.y)
+                            - (t.translation.truncate()),
+                    );
+                }
+            });
         }
 
+        // colliding if there are normals
         let is_colliding = !all_normals.is_empty();
         m.colliding = is_colliding;
-        // sums up all vectors and normalizes them
+        // sums up all vectors
         player_contact.0 = all_normals.iter().sum::<Vec2>();
     }
 }

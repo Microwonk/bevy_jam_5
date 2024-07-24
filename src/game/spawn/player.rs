@@ -5,7 +5,7 @@ use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, Worldly};
 use crate::game::{
     animation::AsepriteAnimationBundleWrapper,
     assets::{AsepriteKey, HandleMap},
-    movement::MovementController,
+    movement::{MovementConfig, MovementController},
 };
 
 use super::level::{components::ColliderBundle, items::Items};
@@ -90,6 +90,7 @@ pub struct PlayerBundle {
     pub collider_bundle: ColliderBundle,
     pub player: Player,
     pub movement_controller: MovementController,
+    pub movement_config: MovementConfig,
     #[worldly]
     pub worldly: Worldly,
 

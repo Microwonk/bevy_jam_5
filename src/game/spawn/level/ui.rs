@@ -59,10 +59,7 @@ fn update_hampter_ui(
     items: Query<&Items>,
 ) {
     for item in items.iter() {
-        let hampter_count = item
-            .0
-            .get(&ItemType::Hampter.to_str().to_owned())
-            .unwrap_or(&0);
+        let hampter_count = item.0.get(&ItemType::Hampter).unwrap_or(&0);
 
         for (e, marker) in icons.iter().sort::<&HampterIconMarker>() {
             if marker.0 >= *hampter_count {

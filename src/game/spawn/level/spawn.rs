@@ -3,10 +3,7 @@ use crate::{
     screen::Screen,
 };
 
-use super::{
-    components::*,
-    items::{BluberryBundle, HampterBundle, ItemType},
-};
+use super::components::*;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
@@ -52,9 +49,7 @@ pub(super) fn plugin(app: &mut App) {
     )
     .register_ldtk_int_cell::<WallBundle>(1)
     .register_ldtk_int_cell::<WallBundle>(3)
-    .register_ldtk_entity::<PlayerBundle>("Player")
-    .register_ldtk_entity::<HampterBundle>(ItemType::Hampter.to_str())
-    .register_ldtk_entity::<BluberryBundle>(ItemType::Bluberry.to_str());
+    .register_ldtk_entity::<PlayerBundle>("Player");
 }
 
 /// Spawns heron collisions for the walls of a level
@@ -234,7 +229,6 @@ pub(super) fn spawn_wall_collision(
 
 const ASPECT_RATIO: f32 = 16. / 9.;
 
-#[allow(clippy::type_complexity)]
 pub fn camera_fit_inside_current_level(
     mut camera_query: Query<
         (
