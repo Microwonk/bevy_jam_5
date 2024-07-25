@@ -65,6 +65,7 @@ asset_enum! {
     pub enum ImageKey {
         Hampter => "images/hampter.png",
         NotCollectedHampter => "images/not_collected_hampter.png",
+        Bluberry => "images/bluberry.png",
         Hamsterwheel => "images/hamsterwheel.png",
     }
     asset_type: Image,

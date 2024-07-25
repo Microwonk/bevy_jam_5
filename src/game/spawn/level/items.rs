@@ -78,7 +78,7 @@ fn boost_stats(mut query: Query<(&Items, &mut MovementConfig)>) {
 
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
-struct BluberryTimer(Timer);
+pub struct BluberryTimer(pub Timer);
 
 impl Default for BluberryTimer {
     fn default() -> Self {

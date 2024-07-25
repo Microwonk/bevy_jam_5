@@ -34,7 +34,9 @@ pub struct CurrentLevel(pub SpawnLevel);
 impl CurrentLevel {
     pub fn items(&self) -> HashMap<ItemType, u8> {
         match self.0 {
-            SpawnLevel::First => [(ItemType::Hampter, 15), (ItemType::Bluberry, 8)]
+            // TODO
+            // bluberrys are disregarded for now
+            SpawnLevel::First => [(ItemType::Hampter, 15), (ItemType::Bluberry, 0)]
                 .iter()
                 .cloned()
                 .collect(),
@@ -47,6 +49,17 @@ impl CurrentLevel {
             .iter()
             .find_map(|val| match val.0 {
                 ItemType::Hampter => Some(val.1),
+                _ => None,
+            })
+            .unwrap_or(&0)
+    }
+
+    pub fn bluberries(&self) -> u8 {
+        *self
+            .items()
+            .iter()
+            .find_map(|val| match val.0 {
+                ItemType::Bluberry => Some(val.1),
                 _ => None,
             })
             .unwrap_or(&0)
