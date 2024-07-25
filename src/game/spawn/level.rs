@@ -3,7 +3,7 @@ pub mod items;
 pub mod spawn;
 pub mod ui;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*, time::Stopwatch, utils::HashMap};
 use bevy_ecs_ldtk::LdtkWorldBundle;
 use items::ItemType;
 
@@ -26,7 +26,11 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_plugins((spawn::plugin, items::plugin, ui::plugin));
     app.observe(spawn_level);
+    app.add_systems(Update, tick_level_timer.run_if(in_state(Screen::Playing)));
 }
+
+#[derive(Resource, Default)]
+pub struct LevelTimer(pub Stopwatch);
 
 #[derive(Resource)]
 pub struct CurrentLevel(pub SpawnLevel);
@@ -54,6 +58,7 @@ impl CurrentLevel {
             .unwrap_or(&0)
     }
 
+    #[allow(dead_code)]
     pub fn bluberries(&self) -> u8 {
         *self
             .items()
@@ -95,7 +100,14 @@ fn spawn_level(
         })
         .insert(StateScoped(Screen::Playing));
 
+    // level stopwatch
+    commands.init_resource::<LevelTimer>();
+
     // add current Level Resource
     commands.insert_resource(CurrentLevel(trigger.event().clone()));
     next_state.set(LevelState::Loaded);
+}
+
+fn tick_level_timer(time: Res<Time>, mut timer: ResMut<LevelTimer>) {
+    timer.0.tick(time.delta());
 }

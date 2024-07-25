@@ -3,11 +3,10 @@ use std::cmp::Ordering;
 use bevy::prelude::*;
 
 use crate::game::assets::{HandleMap, ImageKey};
-use crate::screen::Screen;
 use crate::ui::prelude::*;
 
 use super::items::{BluberryTimer, ItemType, Items};
-use super::{CurrentLevel, LevelState};
+use super::{CurrentLevel, LevelState, LevelTimer};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(LevelState::Loaded), enter_level)
@@ -235,9 +234,12 @@ fn update_bluberry_ui(
     }
 }
 
-fn update_level_timer_ui(mut timer_text: Query<&mut Text, With<LevelTimerMarker>>) {
+fn update_level_timer_ui(
+    mut timer_text: Query<&mut Text, With<LevelTimerMarker>>,
+    level_timer: Res<LevelTimer>,
+) {
     *timer_text.single_mut() = Text::from_section(
-        "Timer Value",
+        format!("{:.2}", level_timer.0.elapsed_secs()),
         TextStyle {
             color: Color::BLACK,
             ..default()
