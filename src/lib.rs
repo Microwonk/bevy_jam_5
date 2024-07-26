@@ -7,6 +7,7 @@ mod ui;
 use bevy::{
     asset::AssetMetaCheck,
     audio::{AudioPlugin, Volume},
+    log::LogPlugin,
     prelude::*,
 };
 
@@ -31,6 +32,11 @@ impl Plugin for AppPlugin {
                     // This causes errors and even panics on web build on itch.
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
                     meta_check: AssetMetaCheck::Never,
+                    ..default()
+                })
+                .set(LogPlugin {
+                    level: bevy::log::Level::WARN,
+                    filter: "bevy_hanabi=warn,2d=trace".to_string(),
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest())

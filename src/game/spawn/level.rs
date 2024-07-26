@@ -27,6 +27,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins((spawn::plugin, items::plugin, ui::plugin));
     app.observe(spawn_level);
     app.add_systems(Update, tick_level_timer.run_if(in_state(Screen::Playing)));
+    app.add_systems(OnExit(Screen::Playing), reset_level_timer);
 }
 
 #[derive(Resource, Default)]
@@ -110,4 +111,8 @@ fn spawn_level(
 
 fn tick_level_timer(time: Res<Time>, mut timer: ResMut<LevelTimer>) {
     timer.0.tick(time.delta());
+}
+
+fn reset_level_timer(mut timer: ResMut<LevelTimer>) {
+    timer.0.reset();
 }

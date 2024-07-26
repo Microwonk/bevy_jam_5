@@ -1,17 +1,29 @@
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::AsepriteAnimationBundle;
+use bevy_aseprite_ultra::prelude::{Animation, AsepriteAnimationBundle};
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, Worldly};
+use bevy_rapier2d::prelude::Velocity;
 
-use crate::game::{
-    animation::AsepriteAnimationBundleWrapper,
-    assets::{AsepriteKey, HandleMap},
-    movement::{MovementConfig, MovementController},
+use crate::{
+    game::{
+        animation::AsepriteAnimationBundleWrapper,
+        assets::{AsepriteKey, HandleMap},
+        movement::{MovementConfig, MovementController},
+    },
+    screen::Screen,
 };
 
 use super::level::{components::ColliderBundle, items::Items};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (on_player_bundle_added, update_hamster_orientation));
+    app.add_systems(
+        Update,
+        (
+            on_player_bundle_added,
+            update_hamster_orientation,
+            control_hamster_animation_speed,
+        )
+            .run_if(in_state(Screen::Playing)),
+    );
 }
 
 #[derive(Component)]
@@ -34,6 +46,17 @@ fn on_player_bundle_added(
                 .insert(Hamster);
         });
     }
+}
+
+pub fn control_hamster_animation_speed(
+    player: Query<&Velocity, With<Player>>,
+    mut animation: Query<&mut Animation, With<Hamster>>,
+) {
+    if let Ok(vel) = player.get_single() {
+        if let Ok(mut anim) = animation.get_single_mut() {
+            anim.speed = vel.angvel.abs() / 2.;
+        };
+    };
 }
 
 // A WHOLE BUNCH OF VECTOR/MATH MAGIC

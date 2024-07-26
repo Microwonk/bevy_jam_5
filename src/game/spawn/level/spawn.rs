@@ -50,6 +50,11 @@ pub(super) fn plugin(app: &mut App) {
     .register_ldtk_int_cell::<WallBundle>(1)
     .register_ldtk_int_cell::<WallBundle>(3)
     .register_ldtk_entity::<PlayerBundle>("Player");
+
+    // register ramp bundles
+    for i in 4..=8 {
+        app.register_ldtk_int_cell::<RampBundle>(i);
+    }
 }
 
 /// Spawns heron collisions for the walls of a level

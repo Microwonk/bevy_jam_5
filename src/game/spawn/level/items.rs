@@ -59,7 +59,6 @@ fn bob_items(
 }
 
 // boost stats from items
-// TODO, on a timer
 fn boost_stats(mut query: Query<(&Items, &mut MovementConfig)>) {
     for (i, mut config) in query.iter_mut() {
         for (item, count) in &i.0 {
