@@ -34,6 +34,7 @@ impl From<IntGridCell> for ColliderBundle {
     }
 }
 
+// simple ramp collider using some magic trigonometry
 fn create_ramp_collider(
     center_x: f32,
     center_y: f32,
@@ -41,17 +42,15 @@ fn create_ramp_collider(
     start_angle: f32,
     num_segments: usize,
 ) -> ColliderBundle {
-    let mut vertices = vec![];
-
-    for i in 0..=num_segments {
+    let vertices = (0..=num_segments).map(|i| {
         let theta = start_angle + PI / 2. * (i as f32 / num_segments as f32);
         let x = center_x + radius * theta.cos();
         let y = center_y + radius * theta.sin();
-        vertices.push(Vec2::new(x, y));
-    }
+        Vec2::new(x, y)
+    });
 
     ColliderBundle {
-        collider: Collider::polyline(vertices.clone(), None),
+        collider: Collider::polyline(vertices.collect(), None),
         rigid_body: RigidBody::Fixed,
         ..default()
     }

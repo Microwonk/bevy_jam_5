@@ -3,18 +3,18 @@ use std::cmp::Ordering;
 use bevy::prelude::*;
 
 use crate::game::assets::{HandleMap, ImageKey};
+use crate::screen::Screen;
 use crate::ui::prelude::*;
 
 use super::items::{BluberryTimer, ItemType, Items};
-use super::{CurrentLevel, LevelState, LevelTimer};
+use super::{CurrentLevel, LevelTimer};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(LevelState::Loaded), enter_level)
-        .add_systems(
-            Update,
-            (update_hampter_ui, update_bluberry_ui, update_level_timer_ui)
-                .run_if(in_state(LevelState::Loaded)),
-        );
+    app.observe(enter_level).add_systems(
+        Update,
+        (update_hampter_ui, update_bluberry_ui, update_level_timer_ui)
+            .run_if(in_state(Screen::Playing)),
+    );
 }
 
 // u8 used to store which hampter has been collected
@@ -33,7 +33,11 @@ struct BluberryTimerMarker;
 #[derive(Component, Default)]
 struct LevelTimerMarker;
 
-fn enter_level(
+#[derive(Event)]
+pub struct StartLevelUi;
+
+pub fn enter_level(
+    _: Trigger<StartLevelUi>,
     mut commands: Commands,
     handles: Res<HandleMap<ImageKey>>,
     current_level: Res<CurrentLevel>,
@@ -53,7 +57,7 @@ fn enter_level(
             },
             ..default()
         })
-        .insert(StateScoped(LevelState::Loaded))
+        .insert(StateScoped(Screen::Playing))
         .with_children(|child| {
             for (item, count) in current_level.items() {
                 if matches!(item, ItemType::Hampter) {
@@ -83,7 +87,7 @@ fn enter_level(
             ..default()
         })
         .insert(BluberryNodeMarker)
-        .insert(StateScoped(LevelState::Loaded));
+        .insert(StateScoped(Screen::Playing));
 
     // bluberry timer
     commands
@@ -101,7 +105,7 @@ fn enter_level(
             },
             ..default()
         })
-        .insert(StateScoped(LevelState::Loaded))
+        .insert(StateScoped(Screen::Playing))
         .with_children(|c| {
             c.spawn(TextBundle::from_section(
                 "",
@@ -130,7 +134,7 @@ fn enter_level(
             },
             ..default()
         })
-        .insert(StateScoped(LevelState::Loaded))
+        .insert(StateScoped(Screen::Playing))
         .with_children(|c| {
             c.spawn(TextBundle::from_section(
                 "",
@@ -177,60 +181,60 @@ fn update_bluberry_ui(
     mut commands: Commands,
     items: Query<&Items>,
 ) {
-    let (e, mut s) = bluberry_ui_node.get_single_mut().unwrap();
+    if let Ok((e, mut s)) = bluberry_ui_node.get_single_mut() {
+        // Collect bluberry icons first
+        let bluberry_is: Vec<Entity> = bluberry_icons.iter().collect();
 
-    // Collect bluberry icons first
-    let bluberry_is: Vec<Entity> = bluberry_icons.iter().collect();
+        // Create a list of entities to despawn
+        let mut entities_to_despawn = vec![];
 
-    // Create a list of entities to despawn
-    let mut entities_to_despawn = vec![];
+        commands.entity(e).with_children(|child| {
+            for item in items.iter() {
+                let bluberry_count = item.0.get(&ItemType::Bluberry).unwrap_or(&0);
 
-    commands.entity(e).with_children(|child| {
-        for item in items.iter() {
-            let bluberry_count = item.0.get(&ItemType::Bluberry).unwrap_or(&0);
+                // adjust node width
+                s.width = Val::Percent(4.5 * *bluberry_count as f32);
+                let length = bluberry_is.len() as u8;
 
-            // adjust node with
-            s.width = Val::Percent(4.5 * *bluberry_count as f32);
-            let length = bluberry_is.len() as u8;
-
-            match length.cmp(bluberry_count) {
-                Ordering::Less => {
-                    for _ in length..*bluberry_count {
-                        child
-                            .icon(handles[&ImageKey::Bluberry].clone_weak())
-                            .insert(BluberryIconMarker);
+                match length.cmp(bluberry_count) {
+                    Ordering::Less => {
+                        for _ in length..*bluberry_count {
+                            child
+                                .icon(handles[&ImageKey::Bluberry].clone_weak())
+                                .insert(BluberryIconMarker);
+                        }
                     }
-                }
-                Ordering::Greater => {
-                    for over in *bluberry_count..length {
-                        entities_to_despawn.push(bluberry_is[over as usize]);
+                    Ordering::Greater => {
+                        for over in *bluberry_count..length {
+                            entities_to_despawn.push(bluberry_is[over as usize]);
+                        }
                     }
-                }
-                Ordering::Equal => {
-                    *bluberry_timer_text.single_mut() = Text::from_section(
-                        if *bluberry_count == 0 {
-                            "".into()
-                        } else {
-                            format!(
-                                "{:.2}",
-                                (bluberry_timer.0.duration() * *bluberry_count as u32
-                                    - bluberry_timer.0.elapsed())
-                                .as_secs_f32()
-                            )
-                        },
-                        TextStyle {
-                            color: Color::BLACK,
-                            ..default()
-                        },
-                    )
+                    Ordering::Equal => {
+                        *bluberry_timer_text.single_mut() = Text::from_section(
+                            if *bluberry_count == 0 {
+                                "".into()
+                            } else {
+                                format!(
+                                    "{:.2}",
+                                    (bluberry_timer.0.duration() * *bluberry_count as u32
+                                        - bluberry_timer.0.elapsed())
+                                    .as_secs_f32()
+                                )
+                            },
+                            TextStyle {
+                                color: Color::BLACK,
+                                ..default()
+                            },
+                        )
+                    }
                 }
             }
-        }
-    });
+        });
 
-    // Despawn entities outside of the with_children closure
-    for entity in entities_to_despawn {
-        commands.entity(entity).despawn();
+        // Despawn entities outside of the with_children closure
+        for entity in entities_to_despawn {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
@@ -238,11 +242,13 @@ fn update_level_timer_ui(
     mut timer_text: Query<&mut Text, With<LevelTimerMarker>>,
     level_timer: Res<LevelTimer>,
 ) {
-    *timer_text.single_mut() = Text::from_section(
-        format!("{:.2}", level_timer.0.elapsed_secs()),
-        TextStyle {
-            color: Color::BLACK,
-            ..default()
-        },
-    );
+    if let Ok(mut timer_text) = timer_text.get_single_mut() {
+        *timer_text = Text::from_section(
+            format!("{:.2}", level_timer.0.elapsed_secs()),
+            TextStyle {
+                color: Color::BLACK,
+                ..default()
+            },
+        );
+    }
 }
